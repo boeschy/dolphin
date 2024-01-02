@@ -130,8 +130,8 @@ endif()
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
-# Enable SDL for default on operating systems that aren't Android or Linux.
-if(NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+# Enable SDL by default on operating systems that aren't Android.
+if(NOT ANDROID)
   option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
 else()
   option(ENABLE_SDL "Enables SDL as a generic controller backend" OFF)
