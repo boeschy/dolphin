@@ -328,11 +328,12 @@ BootParameters::IPL::IPL(DiscIO::Region region_, Disc&& disc_) : IPL(region_)
 // Inserts a disc into the emulated disc drive and returns a pointer to it.
 // The returned pointer must only be used while we are still booting,
 // because DVDThread can do whatever it wants to the disc after that.
-static const DiscIO::VolumeDisc* SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
+static const DiscIO::VolumeDisc* SetDisc(DVD::DVDInterface& dvd_interface,
+                                         std::unique_ptr<DiscIO::VolumeDisc> disc,
                                          std::vector<std::string> auto_disc_change_paths = {})
 {
   const DiscIO::VolumeDisc* pointer = disc.get();
-  Core::System::GetInstance().GetDVDInterface().SetDisc(std::move(disc), auto_disc_change_paths);
+  dvd_interface.SetDisc(std::move(disc), auto_disc_change_paths);
   return pointer;
 }
 
@@ -500,11 +501,11 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   return true;
 }
 
-static void SetDefaultDisc()
+static void SetDefaultDisc(DVD::DVDInterface& dvd_interface)
 {
   const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
   if (!default_iso.empty())
-    SetDisc(DiscIO::CreateDisc(default_iso));
+    SetDisc(dvd_interface, DiscIO::CreateDisc(default_iso));
 }
 
 static void CopyDefaultExceptionHandlers(Core::System& system)
@@ -548,7 +549,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
     {
       NOTICE_LOG_FMT(BOOT, "Booting from disc: {}", disc.path);
       const DiscIO::VolumeDisc* volume =
-          SetDisc(std::move(disc.volume), disc.auto_disc_change_paths);
+          SetDisc(system.GetDVDInterface(), std::move(disc.volume), disc.auto_disc_change_paths);
 
       if (!volume)
         return false;
@@ -567,7 +568,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!executable.reader->IsValid())
         return false;
 
-      SetDefaultDisc();
+      SetDefaultDisc(system.GetDVDInterface());
 
       auto& ppc_state = system.GetPPCState();
 
@@ -617,7 +618,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
     bool operator()(const DiscIO::VolumeWAD& wad) const
     {
-      SetDefaultDisc();
+      SetDefaultDisc(system.GetDVDInterface());
       if (!Boot_WiiWAD(system, wad))
         return false;
 
@@ -627,7 +628,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
     bool operator()(const BootParameters::NANDTitle& nand_title) const
     {
-      SetDefaultDisc();
+      SetDefaultDisc(system.GetDVDInterface());
       if (!BootNANDTitle(system, nand_title.id))
         return false;
 
@@ -653,7 +654,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (ipl.disc)
       {
         NOTICE_LOG_FMT(BOOT, "Inserting disc: {}", ipl.disc->path);
-        SetDisc(DiscIO::CreateDisc(ipl.disc->path), ipl.disc->auto_disc_change_paths);
+        SetDisc(system.GetDVDInterface(), DiscIO::CreateDisc(ipl.disc->path),
+                ipl.disc->auto_disc_change_paths);
       }
 
       SConfig::OnNewTitleLoad(guard);
