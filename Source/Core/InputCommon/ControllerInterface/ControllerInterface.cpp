@@ -65,7 +65,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
-// nothing needed for Quartz
+  m_input_backends.emplace_back(ciface::Quartz::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_SDL
   m_input_backends.emplace_back(ciface::SDL::CreateInputBackend(this));
@@ -169,12 +169,6 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   if (m_wsi.type == WindowSystemType::X11)
     ciface::XInput2::PopulateDevices(m_wsi.render_window);
 #endif
-#ifdef CIFACE_USE_OSX
-  if (m_wsi.type == WindowSystemType::MacOS)
-  {
-    ciface::Quartz::PopulateDevices(m_wsi.render_window);
-  }
-#endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::PopulateDevices();
 #endif
@@ -225,9 +219,6 @@ void ControllerInterface::Shutdown()
 #endif
 #ifdef CIFACE_USE_XLIB
 // nothing needed
-#endif
-#ifdef CIFACE_USE_OSX
-  ciface::Quartz::DeInit();
 #endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::Shutdown();
