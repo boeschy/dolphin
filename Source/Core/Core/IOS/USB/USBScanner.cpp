@@ -182,9 +182,11 @@ void USBScanner::AddEmulatedDevices(DeviceMap* new_devices)
     auto infinity_base = std::make_unique<USB::InfinityUSB>();
     AddDevice(std::move(infinity_base), new_devices);
   }
-
-  auto wii_speak = std::make_unique<USB::WiiSpeak>();
-  AddDevice(std::move(wii_speak), new_devices);
+  if (Config::Get(Config::MAIN_EMULATE_WII_SPEAK) && !NetPlay::IsNetPlayRunning())
+  {
+    auto wii_speak = std::make_unique<USB::WiiSpeak>();
+    AddDevice(std::move(wii_speak), new_devices);
+  }
 }
 
 void USBScanner::WakeupSantrollerDevice(libusb_device* device)
