@@ -5,8 +5,8 @@
 
 #include <array>
 #include <cstdarg>
-#include <map>
 #include <string>
+#include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/EnumMap.h"
@@ -35,6 +35,13 @@ public:
 class LogManager
 {
 public:
+  struct LogContainer
+  {
+    const char* m_short_name;
+    const char* m_full_name;
+    bool m_enable = false;
+  };
+
   static LogManager* GetInstance();
   static void Init();
   static void Shutdown();
@@ -49,7 +56,7 @@ public:
   void SetEnable(LogType type, bool enable);
   bool IsEnabled(LogType type, LogLevel level = LogLevel::LNOTICE) const;
 
-  std::map<std::string, std::string> GetLogTypes();
+  std::vector<LogContainer> GetLogTypes();
 
   const char* GetShortName(LogType type) const;
   const char* GetFullName(LogType type) const;
@@ -61,13 +68,6 @@ public:
   void SaveSettings();
 
 private:
-  struct LogContainer
-  {
-    const char* m_short_name;
-    const char* m_full_name;
-    bool m_enable = false;
-  };
-
   LogManager();
   ~LogManager();
 
