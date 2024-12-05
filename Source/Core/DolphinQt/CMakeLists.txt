@@ -573,7 +573,6 @@ endif()
 
 if(APPLE)
   include(BundleUtilities)
-  set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DolphinQt.app)
 
   # Ask for an application bundle.
   set_target_properties(dolphin-emu PROPERTIES
@@ -649,7 +648,7 @@ if(APPLE)
       COMMAND "${CMAKE_SOURCE_DIR}/Tools/mac-codesign.sh"
       "-e" "${CMAKE_CURRENT_SOURCE_DIR}/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements"
       "${MACOS_CODE_SIGNING_IDENTITY}"
-      "${BUNDLE_PATH}"
+      "$<TARGET_BUNDLE_DIR:dolphin-emu>"
     )
   endif()
 else()
