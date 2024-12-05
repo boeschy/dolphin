@@ -577,7 +577,7 @@ if(APPLE)
   # Ask for an application bundle.
   set_target_properties(dolphin-emu PROPERTIES
     MACOSX_BUNDLE true
-    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
     OUTPUT_NAME DolphinQt
     )
@@ -613,6 +613,9 @@ if(APPLE)
       MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
     source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
   endforeach()
+
+  include(DolphinInjectVersionInfo)
+  dolphin_inject_version_info(dolphin-emu)
 
   # Copy MoltenVK into the bundle
   if(ENABLE_VULKAN)
