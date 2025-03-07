@@ -7,15 +7,12 @@
 
 #include "Core/System.h"
 
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/Present.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/Statistics.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoEvents.h"
-#include "VideoCommon/VideoState.h"
 
 AsyncRequests AsyncRequests::s_singleton;
 
@@ -32,46 +29,28 @@ void AsyncRequests::PullEventsInternal()
 
   while (!m_queue.empty())
   {
-    Event e = m_queue.front();
-
+    Event e = std::move(m_queue.front());
     lock.unlock();
-    HandleEvent(e);
+    std::invoke(e);
     lock.lock();
 
     m_queue.pop();
   }
 
-  if (m_wake_me_up_again)
-  {
-    m_wake_me_up_again = false;
-    m_cond.notify_all();
-  }
+  m_cond.notify_one();
 }
 
-void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
+void AsyncRequests::QueueEvent(Event&& event)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
-
-  if (m_passthrough)
-  {
-    HandleEvent(event);
-    return;
-  }
-
   m_empty.Clear();
-  m_wake_me_up_again |= blocking;
 
   if (!m_enable)
     return;
 
-  m_queue.push(event);
+  m_queue.push(std::move(event));
 
   auto& system = Core::System::GetInstance();
   system.GetFifo().RunGpu();
-  if (blocking)
-  {
-    m_cond.wait(lock, [this] { return m_queue.empty(); });
-  }
 }
 
 void AsyncRequests::WaitForEmptyQueue()
@@ -90,6 +69,7 @@ void AsyncRequests::SetEnable(bool enable)
     // flush the queue on disabling
     while (!m_queue.empty())
       m_queue.pop();
+<<<<<<< HEAD
     if (m_wake_me_up_again)
       m_cond.notify_all();
   }
@@ -144,6 +124,9 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::DO_SAVE_STATE:
     VideoCommon_DoState(*e.do_save_state.p);
     break;
+=======
+    m_cond.notify_one();
+>>>>>>> 63b848ca93 (VideoCommon: Eliminate EFBAccessType enum. Eliminate union and switch statement handler in AsyncRequests.)
   }
 }
 
