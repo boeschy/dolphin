@@ -36,7 +36,7 @@ class PerfQuery : public PerfQueryBase
 {
 public:
   PerfQuery() {}
-  ~PerfQuery() {}
+  ~PerfQuery() override {}
   void EnableQuery(PerfQueryGroup type) override {}
   void DisableQuery(PerfQueryGroup type) override {}
   void ResetQuery() override { EfbInterface::ResetPerfQuery(); }
