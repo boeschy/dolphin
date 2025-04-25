@@ -4,6 +4,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 #include <algorithm>
+#include <optional>
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
@@ -37,7 +38,9 @@
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
-static bool s_has_registered_callback = false;
+BackendInfo g_backend_info;
+static std::optional<CPUThreadConfigCallback::ConfigChangedCallbackID>
+    s_config_changed_callback_id = std::nullopt;
 
 static bool IsVSyncActive(bool enabled)
 {
@@ -54,14 +57,14 @@ void UpdateActiveConfig()
 
 void VideoConfig::Refresh()
 {
-  if (!s_has_registered_callback)
+  if (!s_config_changed_callback_id.has_value())
   {
     // There was a race condition between the video thread and the host thread here, if
     // corrections need to be made by VerifyValidity(). Briefly, the config will contain
     // invalid values. Instead, pause the video thread first, update the config and correct
     // it, then resume emulation, after which the video thread will detect the config has
     // changed and act accordingly.
-    CPUThreadConfigCallback::AddConfigChangedCallback([]() {
+    const auto config_changed_callback = []() {
       auto& system = Core::System::GetInstance();
 
       const bool lock_gpu_thread = Core::IsRunning(system);
@@ -73,8 +76,10 @@ void VideoConfig::Refresh()
 
       if (lock_gpu_thread)
         system.GetFifo().PauseAndLock(false, true);
-    });
-    s_has_registered_callback = true;
+    };
+
+    s_config_changed_callback_id =
+        CPUThreadConfigCallback::AddConfigChangedCallback(config_changed_callback);
   }
 
   bVSync = Config::Get(Config::GFX_VSYNC);
@@ -214,6 +219,15 @@ void VideoConfig::VerifyValidity()
       stereo_mode = StereoMode::Off;
     }
   }
+}
+
+void VideoConfig::Shutdown()
+{
+  if (!s_config_changed_callback_id.has_value())
+    return;
+
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(*s_config_changed_callback_id);
+  s_config_changed_callback_id.reset();
 }
 
 bool VideoConfig::UsingUberShaders() const
