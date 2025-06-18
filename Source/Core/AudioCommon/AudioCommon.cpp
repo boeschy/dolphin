@@ -211,7 +211,7 @@ void SendAIBuffer(Core::System& system, const short* samples, unsigned int num_s
     mixer->PushSamples(samples, num_samples);
   }
   // Needed for libretro
-  virtual void sound_stream->Update();
+  UpdateSoundStream(system);
 }
 
 void StartAudioDump(Core::System& system)
