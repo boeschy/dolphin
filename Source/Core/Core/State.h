@@ -10,11 +10,8 @@
 #include <string>
 #include <type_traits>
 
-<<<<<<< HEAD
 #include "Common/ChunkFile.h"
-=======
 #include "Common/Buffer.h"
->>>>>>> ac3dbe2294 (Core/State: Use UniqueBuffer instead of make_unique and std::vector for save state buffers.)
 #include "Common/CommonTypes.h"
 
 namespace Core
