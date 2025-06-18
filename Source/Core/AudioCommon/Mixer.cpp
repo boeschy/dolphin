@@ -206,11 +206,6 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
   return num_samples;
 }
 
-unsigned int Mixer::AvailableSamples() const
-{
-  return std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
-}
-
 void Mixer::MixerFifo::PushSamples(const s16* samples, std::size_t num_samples)
 {
   while (num_samples-- > 0)
