@@ -48,7 +48,7 @@
 #include "Core/System.h"
 
 #include "VideoCommon/AsyncRequests.h"
-#include "VideoCommon/EFBInterface.h"
+#include "VideoBackends/Software/EFBInterface.h"
 #include "VideoCommon/Statistics.h"
 
 namespace PowerPC
