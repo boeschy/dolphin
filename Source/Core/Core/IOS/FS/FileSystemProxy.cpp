@@ -8,6 +8,7 @@
 #include <cstring>
 #include <string_view>
 
+#include <fmt/std.h>
 #include <fmt/format.h>
 
 #include "Common/ChunkFile.h"
